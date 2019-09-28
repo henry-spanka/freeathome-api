@@ -1,0 +1,48 @@
+{
+  "name": "freeathome-api",
+  "version": "1.0.0",
+  "description": "HTTP and Websocket API for free@home",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "./node_modules/typescript/bin/tsc",
+    "build-watch": "./node_modules/typescript/bin/tsc -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/henry-spanka/freeathome-api.git"
+  },
+  "keywords": [
+    "free@home",
+    "freeathome",
+    "api",
+    "buschjaeger",
+    "busch-jaeger",
+    "abb",
+    "smarthome"
+  ],
+  "author": "Henry Spanka",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/henry-spanka/freeathome-api/issues"
+  },
+  "homepage": "https://github.com/henry-spanka/freeathome-api#readme",
+  "devDependencies": {
+    "@types/libsodium-wrappers-sumo": "^0.7.1",
+    "@types/ltx": "^2.8.1",
+    "@types/node": "^12.7.7",
+    "@types/pako": "^1.0.1",
+    "typescript": "^3.6.3"
+  },
+  "dependencies": {
+    "@xmpp/client": "^0.7.4",
+    "asmcrypto.js": "^2.3.2",
+    "axios": "^0.19.0",
+    "compare-versions": "^3.5.1",
+    "libsodium-wrappers-sumo": "^0.7.5",
+    "ltx": "^2.9.0",
+    "pako": "^1.0.10"
+  }
+}
