@@ -13,6 +13,7 @@ import { XmlParser } from "./XmlParser"
 
 export class SystemAccessPoint {
     private configuration: Configuration
+    private application: Application
     private client: Client | undefined
     private messageBuilder: MessageBuilder | undefined
     private crypto: Crypto | undefined
@@ -25,8 +26,9 @@ export class SystemAccessPoint {
     private deviceData: any = {}
     private subscribed: boolean = false
 
-    constructor(configuration: Configuration) {
+    constructor(configuration: Configuration, application: Application) {
         this.configuration = configuration
+        this.application = application
     }
 
     private async createClient() {
@@ -373,11 +375,17 @@ export class SystemAccessPoint {
                 }
             }
         }
+
+        this.application.broadcastMessage(JSON.stringify({result: update, type: 'update'}))
     }
 
     async setDatapoint(serialNo: string, channel: string, datapoint: string, value: string) {
         await this.sendMessage(this.messageBuilder!.buildSetDatapointMessage(serialNo, channel, datapoint, value))
 
         Application.log("Set Datapoint: " + serialNo + '/' + channel + '/' + datapoint + '/' + value)
+    }
+
+    getDeviceData(): any {
+        return this.deviceData
     }
 }

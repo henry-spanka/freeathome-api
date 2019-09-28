@@ -34,6 +34,7 @@
     "@types/ltx": "^2.8.1",
     "@types/node": "^12.7.7",
     "@types/pako": "^1.0.1",
+    "@types/ws": "^6.0.3",
     "typescript": "^3.6.3"
   },
   "dependencies": {
@@ -43,6 +44,7 @@
     "compare-versions": "^3.5.1",
     "libsodium-wrappers-sumo": "^0.7.5",
     "ltx": "^2.9.0",
-    "pako": "^1.0.10"
+    "pako": "^1.0.10",
+    "ws": "^7.1.2"
   }
 }
