@@ -386,6 +386,10 @@ export class SystemAccessPoint {
     }
 
     getDeviceData(): any {
+        if (Object.entries(this.deviceData).length === 0 && this.deviceData.constructor === Object) {
+            throw new Error("Device Data was requested before we have initialized it")
+        }
+
         return this.deviceData
     }
 }
