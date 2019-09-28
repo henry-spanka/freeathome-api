@@ -355,7 +355,12 @@ export class SystemAccessPoint {
                     serialNumber: serialNo,
                     channels: {}
                 }
+            } else {
+                update[serialNo]['deviceId'] = this.deviceData[serialNo]['deviceId']
+                update[serialNo]['typeName'] = this.deviceData[serialNo]['typeName']
             }
+
+            update[serialNo]['serialNumber'] = serialNo
 
             if (device.channels != null) {
                 for (const [channelNo, channel] of Object.entries<any>(device.channels)) {

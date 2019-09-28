@@ -57,6 +57,7 @@ export class XmlParser {
                 }
             } else {
                 parsed[serialNo] = {
+                    serialNumber: serialNo,
                     channels: {}
                 }
             }
