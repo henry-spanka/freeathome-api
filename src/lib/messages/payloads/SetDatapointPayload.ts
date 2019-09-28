@@ -28,8 +28,6 @@ export class SetDatapointPayload implements BasePayload {
             ]
         }
 
-        console.log(data)
-
         messageWriter.writeString(JSON.stringify(data))
 
         return messageWriter.toUint8Array()
