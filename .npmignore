@@ -1,2 +1,4 @@
-src/*
+src/
 node_modules/
+config.example.json
+tsconfig.json
