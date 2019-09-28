@@ -1,0 +1,8 @@
+{
+    "hostname": "hostname-of-accesspoint.example.com",
+    "username": "freeathome-api",
+    "password": "password",
+    "httpPort": 0,
+    "wsPort": 8081,
+    "debug": false
+}
