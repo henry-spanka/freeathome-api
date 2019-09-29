@@ -1,3 +1,3 @@
-## 1.0.0 (UNRELEASED)
+## 1.0.0 (2019-09-29)
 
 Initial Release
