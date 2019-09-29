@@ -24,11 +24,11 @@ export class Application {
 
         await this.systemAccessPoint.connect()
 
-        if (this.configuration.wsPort > 0) {
+        if (this.configuration.wsApi.enabled) {
             this.startWebsocketServer()
         }
 
-        if (this.configuration.httpPort > 0) {
+        if (this.configuration.httpApi.enabled) {
             await this.startWebServer()
         }
     }
@@ -82,7 +82,7 @@ export class Application {
     }
 
     private startWebsocketServer() {
-        this.wss = new ws.Server({ port: this.configuration.wsPort })
+        this.wss = new ws.Server({ host: this.configuration.wsApi.address, port: this.configuration.wsApi.port })
 
         Application.log("Websocket Server started")
 
@@ -152,7 +152,7 @@ export class Application {
         })
 
         return new Promise<void>((resolve) => {
-            this.webServer = webServer.listen(this.configuration.httpPort, () => {
+            this.webServer = webServer.listen(this.configuration.httpApi.port, this.configuration.httpApi.address, () => {
                 Application.log("Webserver Started")
                 resolve()
             })

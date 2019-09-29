@@ -2,7 +2,15 @@
     "hostname": "hostname-of-accesspoint.example.com",
     "username": "freeathome-api",
     "password": "password",
-    "httpPort": 0,
-    "wsPort": 8081,
+    "httpApi": {
+        "enabled": true,
+        "address": "127.0.0.1",
+        "port": 8080
+    },
+    "wsApi": {
+        "enabled": true,
+        "address": "127.0.0.1",
+        "port": 8081
+    },
     "debug": false
 }
