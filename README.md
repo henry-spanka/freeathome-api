@@ -53,6 +53,9 @@ A datapoint can be set by sending the following payload to the API:
 ## Get the state of all actuators
 To get the state of all actuators send the following payload: `info`
 
+## Get the state of a specific actuator
+To get the state of a specific actuator send the following payload: `info/{serialNo}`
+
 ## Receive real-time updates
 Real-Time updates are automatically sent to all connected websocket clients. Messages which have `{type: 'update'}` set are updates.
 

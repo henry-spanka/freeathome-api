@@ -78,11 +78,21 @@ export class Application {
 
                 let command = parts[0]
 
-                switch(command) {
+                switch (command) {
                     case 'info':
-                        ws.send(JSON.stringify({result: this.systemAccessPoint.getDeviceData()}))
+                        let deviceData = this.systemAccessPoint.getDeviceData()
+
+                        if (parts.length == 2) {
+                            if (deviceData[parts[1]] !== undefined) {
+                                deviceData = deviceData[parts[1]]
+                            } else {
+                                deviceData = {}
+                            }
+                        }
+
+                        ws.send(JSON.stringify({ result: deviceData }))
                         break
-                    
+
                     case 'raw':
                         if (parts.length != 5) {
                             Application.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': unexpected length of command')
