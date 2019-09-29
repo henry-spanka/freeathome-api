@@ -11,7 +11,7 @@
 Busch-Jaeger free@home API to control actuators.
 
 # Description
-This API exposes a websocket API which can be used to receive and set state changes of free@home actuators.
+This API exposes a websocket and HTTP API which can be used to receive and set state changes of free@home actuators.
 It requires a System Access Point with version 2.3.0 or higher.
 
 # Features
@@ -47,7 +47,7 @@ This API is still in an early state. After Busch-Jaeger released an updated firm
 # API Endpoints
 
 ## Set a datapoint
-A datapoint can be set by sending the following payload to the API:
+A datapoint can be set by sending the following payload to the API (for the HTTP based API send the payload as path):
 `{serialNo}/{channel}/{datapoint}/{value}`
 
 ## Get the state of all actuators
