@@ -71,6 +71,9 @@ If you have any questions or help please open an issue on the GitHub project pag
 # Contributing
 Pull requests are always welcome.
 
+# Donation
+If you find my work useful you can support the ongoing development of this project by buying me a [cup of coffee](https://www.paypal.me/Hspanka)
+
 # License
 The project is subject to the MIT license unless otherwise noted. A copy can be found in the root directory of the project [LICENSE](LICENSE).
 
