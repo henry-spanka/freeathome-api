@@ -1,12 +1,15 @@
 import { Configuration } from "./Configuration"
 import { SystemAccessPoint } from "./SystemAccessPoint"
 import ws from "ws"
+import express from "express"
+import http from "http"
 
 export class Application {
     private configuration: Configuration
     private systemAccessPoint: SystemAccessPoint
     private static debugEnabled: boolean = false
     private wss: ws.Server | undefined
+    private webServer: http.Server | undefined
 
     constructor(configuration: Configuration) {
         this.configuration = configuration
@@ -26,12 +29,13 @@ export class Application {
         }
 
         if (this.configuration.httpPort > 0) {
-            throw new Error("Not Implemented")
+            await this.startWebServer()
         }
     }
 
     async stop(): Promise<void> {
         this.closeWebsocketServer()
+        await this.stopWebServer()
 
         Application.log("Stopping free@home API")
         await this.systemAccessPoint.disconnect()
@@ -63,6 +67,20 @@ export class Application {
         process.exit(code)
     }
 
+    private getDeviceData(serialNo?: string): any {
+        let deviceData = this.systemAccessPoint.getDeviceData()
+
+        if (serialNo === undefined) {
+            return deviceData
+        } else {
+            if (deviceData[serialNo] !== undefined) {
+                return deviceData[serialNo]
+            } else {
+                return {}
+            }
+        }
+    }
+
     private startWebsocketServer() {
         this.wss = new ws.Server({ port: this.configuration.wsPort })
 
@@ -80,15 +98,7 @@ export class Application {
 
                 switch (command) {
                     case 'info':
-                        let deviceData = this.systemAccessPoint.getDeviceData()
-
-                        if (parts.length == 2) {
-                            if (deviceData[parts[1]] !== undefined) {
-                                deviceData = deviceData[parts[1]]
-                            } else {
-                                deviceData = {}
-                            }
-                        }
+                        let deviceData = this.getDeviceData(parts[1])
 
                         ws.send(JSON.stringify({ result: deviceData }))
                         break
@@ -122,6 +132,48 @@ export class Application {
             this.wss.close()
             Application.log("Websocket Server stopped")
         }
+    }
+
+    private async startWebServer() {
+        let webServer = express()
+
+        webServer.get('/raw/:serialnumber/:channel/:datapoint/:value', (req, res) => {
+            Application.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Webserver message, command raw, params ', req.params.toString())
+
+            this.systemAccessPoint.setDatapoint(req.params.serialnumber, req.params.channel, req.params.datapoint, req.params.value)
+            res.send(req.params.serialnumber + '/' + req.params.channel + '/' + req.params.datapoint + ': ' + req.params.value)
+        })
+
+        webServer.get('/info/:serialnumber?', (req, res) => {
+            Application.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Webserver message, command info, params ', req.params.toString())
+
+            let deviceData = this.getDeviceData(req.params.serialnumber)
+            res.json(deviceData)
+        })
+
+        return new Promise<void>((resolve) => {
+            this.webServer = webServer.listen(this.configuration.httpPort, () => {
+                Application.log("Webserver Started")
+                resolve()
+            })
+        })
+    }
+
+    private async stopWebServer() {
+        return new Promise<void>((resolve, reject) => {
+            if (this.webServer !== undefined) {
+                this.webServer.close((err) => {
+                    if (err) {
+                        reject()
+                    } else {
+                        Application.log("Webserver Stopped")
+                        resolve()
+                    }
+                })
+            } else {
+                resolve()
+            }
+        })
     }
 
     broadcastMessage(message: string) {
