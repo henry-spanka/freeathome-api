@@ -86,7 +86,7 @@ This API is still in an early state. After Busch-Jaeger released an updated firm
 
 ## Set a datapoint
 A datapoint can be set by sending the following payload to the API (for the HTTP based API send the payload as path):
-`{serialNo}/{channel}/{datapoint}/{value}`
+`raw/{serialNo}/{channel}/{datapoint}/{value}`
 
 ## Get the state of all actuators
 To get the state of all actuators send the following payload: `info`
