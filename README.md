@@ -10,6 +10,8 @@
 
 Busch-Jaeger free@home API to control actuators.
 
+[![NPM](https://nodei.co/npm/freeathome-api.png?compact=true)](https://npmjs.org/package/freeathome-api)
+
 # Description
 This API exposes a websocket and HTTP API which can be used to receive and set state changes of free@home actuators.
 It requires a System Access Point with version 2.3.0 or higher.
