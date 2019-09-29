@@ -26,17 +26,53 @@ It requires a System Access Point with version 2.3.0 or higher.
 * Linux or macOS (may run on Windows but not tested)
 
 # Setup / Installation
-1. Clone the Repository
-2. Create a `config.json` file in root directory of the repository. See [Configuration](#configuration) section.
-3. Run `npm install`
-4. Run `npm build`
-5. Start the API with `node dist/index.js`
-6. Star the repository ;)
+You can install free@home-api both locally or globally. Choose whatever works best for you. I recommend local installation to keep all related project files in the same directory.
+
+## Locally
+1. Create a new directory for the project and enter it
+2. Run `npm install freeathome-api --save`
+3. Create a `config.json` file in root directory of the repository. See [Configuration](#configuration) section.
+4. Start the API with `node bin/freeathome-api`
+5. Star the repository ;)
+
+## Globally
+1. Run `npm install freeathome-api -g`
+2. Create a `config.json` file. The API will look for the configuration file in the directory from which the API is executed. Make sure to set your working directory accordingly. See [Configuration](#configuration) section.
+3. Start the API with `freeathome-api`
+4. Star the repository ;)
+
+
+# Automatically Start on Boot
+You can automatically start the API on boot. The following example is for Linux when using the local install (installed in /opt/freeathome-api). You may need to adjust the script if the API is installed globally.
+Copy the contents of the following code section to `/etc/systemd/system/freeathome-api.service` and run `systemctl daemon-reload`.
+
+You can then enable the service to auto-start on boot with `systemctl enable freeathome-api.service` and start it with `systemctl start freeathome-api.service`
+
+```
+[Unit]
+Description=freeathome API Service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node bin/freeathome-api
+Restart=on-failure
+User=freeathome
+Group=freeathome
+WorkingDirectory=/opt/freeathome-api
+
+[Install]
+WantedBy=multi-user.target
+```
+
+I recommend running the API as a separate user. For this example I have first created a new user with `adduser --system --group --home /opt/freeathome-api freeathome`
 
 # Configuration
 The configuration is placed in the root directory of the repository (where all the other files like `package.json` are).
 
-Copy the [config.example.json](config.example.json) to `config.json` and edit it accordingly. A port number of `0` means that the server is disabled.
+Copy the [config.example.json](config.example.json) to `config.json` and edit it accordingly.
+If installed locally, you can copy the example file with: `cp node_modules/freeathome-api/config.example.json ./config.json`
 
 # Security
 The communication with the System Access Point is encrypted and authenticated with asymmetric encryption. This API uses the same encryption as used by the Browser when communicating with the System Access Point.

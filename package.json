@@ -11,7 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "freeathome-api": "dist/index.js"
+    "freeathome-api": "bin/freeathome-api"
   },
   "repository": {
     "type": "git",

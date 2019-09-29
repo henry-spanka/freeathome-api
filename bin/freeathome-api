@@ -1,0 +1,13 @@
+#!/usr/bin/env node
+
+'use strict';
+
+process.title = 'freeathome-api';
+
+// Find the freeathome entrypoint
+var path = require('path');
+var fs = require('fs');
+var lib = path.join(path.dirname(fs.realpathSync(__filename)), '../dist');
+
+// Run freeathome-api
+require(lib + '/index.js')
