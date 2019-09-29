@@ -58,7 +58,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/node bin/freeathome-api
+ExecStart=/usr/bin/node node_modules/freeathome-api/bin/freeathome-api
 Restart=on-failure
 User=freeathome
 Group=freeathome
