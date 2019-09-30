@@ -45,15 +45,18 @@ Alternatively you can also use docker if Node >= 10 is not available or you want
 3. Start the API with `freeathome-api`
 4. Star the repository ;)
 
-# Docker
+## Docker
 Run the docker container with:
 ```sh
 docker run -d -p 8080:8080 -p 8081:8081 \
 -e FREEATHOME_HOSTNAME=bj.example.com \
 -e FREEATHOME_USERNAME=freeathome \
 -e FREEATHOME_PASSWORD=mypassword \
-henryspanka/freeathome-api
+henryspanka/freeathome-api:$IMAGE_ID
 ```
+
+Replace *$IMAGE_ID* with the latest version on [Docker Hub](https://hub.docker.com/r/henryspanka/freeathome-api/tags).
+Do not use the *latest* tag unless necessary as it is built from the master branch and may contain untested code/features.
 
 For more configuration options see [Configuration](#configuration).
 
