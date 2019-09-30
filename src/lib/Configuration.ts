@@ -1,6 +1,6 @@
 import fs from "fs"
 
-class ServerConfiguration {
+export class ServerConfiguration {
     readonly enabled: boolean
     readonly address: string
     readonly port: number
