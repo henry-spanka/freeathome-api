@@ -2,4 +2,10 @@ node_modules
 npm-debug.log
 config.json
 config.example.json
-src/
+dist/
+.git
+.gitignore
+.npmignore
+build.sh
+Dockerfile
+.dockerignore
