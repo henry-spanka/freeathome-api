@@ -21,16 +21,41 @@ export class XmlParser {
         let parsed: any = {}
 
         let stringData: any = {}
+        let floorData: any = {}
 
         if (!update) {
             let strings = data.getChild('strings')
+            let floorplan = data.getChild('floorplan')
 
-            if (strings === undefined) {
+            if (strings === undefined || floorplan === undefined) {
                 throw new Error("Not a valid Master Packet")
             }
 
             for (let string of strings.getChildren('string')) {
                 stringData[string.getAttr('nameId')] = string.getText()
+            }
+
+            for (let floor of floorplan.getChildren('floor')) {
+                if (floor.getAttr('uid') == 'FD') {
+                    continue
+                }
+
+                let roomData: any = {}
+
+                for (let room of floor.getChildren('room')) {
+                    if (room.getAttr('uid') == 'FC') {
+                        continue
+                    }
+
+                    roomData[room.getAttr('uid')] = {
+                        name: room.getAttr('name')
+                    }
+                }
+
+                floorData[floor.getAttr('uid')] = {
+                    name: floor.getAttr('name'),
+                    rooms: roomData
+                }
             }
         }
 
@@ -75,8 +100,25 @@ export class XmlParser {
             for (let channel of channels.getChildren('channel')) {
                 let channelName = channel.getAttr('i')
 
-                parsed[serialNo]['channels'][channelName] = {
-                    datapoints: {}
+                if (!update) {
+                    let channelAttr = channel.getChildren('attribute')
+
+                    let displayName = channelAttr.find(attr => attr.getAttr('name') == 'displayName')
+                    let floorId = channelAttr.find(attr => attr.getAttr('name') == 'floor')
+                    let roomId = channelAttr.find(attr => attr.getAttr('name') == 'room')
+                    let icon = channelAttr.find(attr => attr.getAttr('name') == 'selectedIcon')
+
+                    parsed[serialNo]['channels'][channelName] = {
+                        datapoints: {},
+                        "displayName": displayName ? displayName.getText() : "",
+                        "floor": floorId ? floorData[floorId.getText()].name : "",
+                        "room": floorId && roomId ? floorData[floorId.getText()].rooms[roomId.getText()].name : "",
+                        "iconId": icon ? icon.getText() : ""
+                    }
+                } else {
+                    parsed[serialNo]['channels'][channelName] = {
+                        datapoints: {}
+                    }
                 }
 
                 for (let type of ['input', 'output', 'parameter']) {
