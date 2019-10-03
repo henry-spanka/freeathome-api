@@ -108,6 +108,22 @@ export class XmlParser {
                     let roomId = channelAttr.find(attr => attr.getAttr('name') == 'room')
                     let icon = channelAttr.find(attr => attr.getAttr('name') == 'selectedIcon')
 
+                    if (!displayName) {
+                        displayName = device.getChildren('attribute').find(attr => attr.getAttr('name') == 'displayName')
+                    }
+
+                    if (!floorId) {
+                        floorId = device.getChildren('attribute').find(attr => attr.getAttr('name') == 'floor')
+                    }
+
+                    if (!roomId) {
+                        roomId = device.getChildren('attribute').find(attr => attr.getAttr('name') == 'room')
+                    }
+
+                    if (!icon) {
+                        icon = device.getChildren('attribute').find(attr => attr.getAttr('name') == 'selectedIcon')
+                    }
+
                     parsed[serialNo]['channels'][channelName] = {
                         datapoints: {},
                         "displayName": displayName ? displayName.getText() : "",
