@@ -87,7 +87,7 @@ export class XmlParser {
                 }
             }
 
-            if (device.getAttr('commissioningState') !== 'ready') {
+            if (device.getAttr('commissioningState') !== 'ready' && update) {
                 continue
             }
 
