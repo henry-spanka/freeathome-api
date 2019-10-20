@@ -12,31 +12,47 @@ export class ServerConfiguration {
     }
 }
 
-export class Configuration {
+export class ClientConfiguration {
     readonly hostname: string
     readonly username: string
     readonly password: string
+
+    constructor(hostname: string, username: string, password: string) {
+        this.hostname = hostname
+        this.username = username
+        this.password = password
+    }
+}
+
+export class Configuration {
+    readonly clientConfiguration: ClientConfiguration
     readonly httpApi: ServerConfiguration
     readonly wsApi: ServerConfiguration
     readonly debug: boolean
 
-    constructor(hostname: string, username: string, password: string, httpApi: ServerConfiguration, wsApi: ServerConfiguration, debug: boolean = false) {
-        this.hostname = hostname
-        this.username = username
-        this.password = password
+    constructor(clientConfiguration: ClientConfiguration, httpApi: ServerConfiguration, wsApi: ServerConfiguration, debug: boolean = false) {
+        this.clientConfiguration = clientConfiguration
         this.httpApi = httpApi
         this.wsApi = wsApi
         this.debug = debug
     }
 
     static readFromFile(path: string): Configuration {
-        let data: Buffer = fs.readFileSync(path)
+        const data: Buffer = fs.readFileSync(path)
+        const conf = JSON.parse(data.toString())
 
-        let conf = JSON.parse(data.toString())
+        const httpApiConf = conf['httpApi'];
+        const httpConfiguration = new ServerConfiguration(httpApiConf['enabled'], httpApiConf['address'], httpApiConf['port'])
 
-        let httpConfiguration = new ServerConfiguration(conf['httpApi']['enabled'], conf['httpApi']['address'], conf['httpApi']['port'])
-        let wsConfiguration = new ServerConfiguration(conf['wsApi']['enabled'], conf['wsApi']['address'], conf['wsApi']['port'])
-        
-        return new Configuration(conf['hostname'], conf['username'], conf['password'], httpConfiguration, wsConfiguration, conf['debug'] !== undefined && conf['debug'])
+        const wsApiConf = conf['wsApi'];
+        const wsConfiguration = new ServerConfiguration(wsApiConf['enabled'], wsApiConf['address'], wsApiConf['port'])
+
+        const clientConfiguration = new ClientConfiguration(conf['hostname'], conf['username'], conf['password']);
+
+        return new Configuration(
+            clientConfiguration,
+            httpConfiguration,
+            wsConfiguration,
+            conf['debug'] !== undefined && conf['debug'])
     }
 }

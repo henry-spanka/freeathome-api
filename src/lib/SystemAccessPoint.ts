@@ -3,7 +3,7 @@ import {MessageBuilder} from "./MessageBuilder"
 import Axios from "axios"
 import {SystemAccessPointSettings, SystemAccessPointUser} from "./SystemAccessPointSettings"
 import compareVersions from "compare-versions"
-import {Configuration} from "./Configuration"
+import {ClientConfiguration} from "./Configuration"
 import {Crypto} from "./Crypto"
 import {MessageReader} from "./MessageReader"
 import {General, Message, Result} from "./constants"
@@ -16,7 +16,7 @@ export interface Subscriber {
 }
 
 export class SystemAccessPoint {
-    private configuration: Configuration
+    private configuration: ClientConfiguration
     private subscriber: Subscriber
     private client: Client | undefined
     private messageBuilder: MessageBuilder | undefined
@@ -32,7 +32,7 @@ export class SystemAccessPoint {
 
     private logger : Logger = new ConsoleLogger()
 
-    constructor(configuration: Configuration, subscriber: Subscriber, logger: Logger | null) {
+    constructor(configuration: ClientConfiguration, subscriber: Subscriber, logger: Logger | null) {
         this.configuration = configuration
         this.subscriber = subscriber
         if (logger !== undefined && logger !== null){

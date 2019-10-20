@@ -14,7 +14,7 @@ export class Application implements Subscriber{
 
     constructor(configuration: Configuration, logger: Logger = new ConsoleLogger()) {
         this.configuration = configuration
-        this.systemAccessPoint = new SystemAccessPoint(configuration, this, logger)
+        this.systemAccessPoint = new SystemAccessPoint(configuration.clientConfiguration, this, logger)
 
         this.logger = logger
         this.logger.debugEnabled = configuration.debug

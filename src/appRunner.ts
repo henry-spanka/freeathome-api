@@ -1,4 +1,4 @@
-import {Configuration, ServerConfiguration} from "./lib/Configuration"
+import {ClientConfiguration, Configuration, ServerConfiguration} from "./lib/Configuration"
 import {Application} from "./lib/Application"
 import {ConsoleLogger} from "./lib/Logger";
 
@@ -15,10 +15,11 @@ export function runApp() {
             exit(1)
         }
 
-        let httpConfiguration = new ServerConfiguration(!('FREEATHOME_HTTP_ENABLED' in process.env && process.env.FREEATHOME_HTTP_ENABLED == '0'), '0.0.0.0', 8080)
-        let wsConfiguration = new ServerConfiguration(!('FREEATHOME_WS_ENABLED' in process.env && process.env.FREEATHOME_WS_ENABLED == '0'), '0.0.0.0', 8081)
+        const httpConfiguration = new ServerConfiguration(!('FREEATHOME_HTTP_ENABLED' in process.env && process.env.FREEATHOME_HTTP_ENABLED == '0'), '0.0.0.0', 8080)
+        const wsConfiguration = new ServerConfiguration(!('FREEATHOME_WS_ENABLED' in process.env && process.env.FREEATHOME_WS_ENABLED == '0'), '0.0.0.0', 8081)
+        const clientConfiguration = new ClientConfiguration(process.env.FREEATHOME_HOSTNAME!, process.env.FREEATHOME_USERNAME!, process.env.FREEATHOME_PASSWORD!);
 
-        config = new Configuration(process.env.FREEATHOME_HOSTNAME!, process.env.FREEATHOME_USERNAME!, process.env.FREEATHOME_PASSWORD!,
+        config = new Configuration(clientConfiguration,
             httpConfiguration, wsConfiguration, 'FREEATHOME_DEBUG' in process.env && process.env.FREEATHOME_DEBUG == '1')
     }
 

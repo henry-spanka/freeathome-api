@@ -13,7 +13,8 @@ Busch-Jaeger free@home API to control actuators.
 [![NPM](https://nodei.co/npm/freeathome-api.png?compact=true)](https://npmjs.org/package/freeathome-api)
 
 # Description
-This API exposes a websocket and HTTP API which can be used to receive and set state changes of free@home actuators.
+This API exposes a websocket and HTTP API which can be used to receive and set state changes of free@home actuators. It
+can be used as a library as well in other applications. 
 It requires a System Access Point with version 2.3.0 or higher.
 
 # Features
@@ -67,6 +68,99 @@ docker logs $CONTAINER_ID
 
 Replace *$CONTAINER_ID* with the id that is shown after starting the docker container. Alternatively check with `docker ps -a`
 
+## Use `freeathome-api` as a library
+1. Use `npm install freeathome-api` in your application for which you want control over busch jaeger devices
+1. Include package in code:
+
+Javascript:
+```ecmascript 6
+"use strict";
+const {SystemAccessPoint} = require("freeathome-api");
+
+module.exports = class FreeAtHomeApi {
+    constructor() {
+        this._connected = false
+        const config = {
+            hostname: "192.168.2.164",
+            username: "API",
+            password: "12345",
+        };
+
+        this.systemAccessPoint = new SystemAccessPoint(
+            config,
+            this,      // instance to report broadcastMessages
+        );
+    }
+
+    async start() {
+        console.log("Starting free@home API");
+
+        try {
+            await this.systemAccessPoint.connect();
+            this._connected = true
+        } catch (e) {
+            console.error("Could not connect to SysAp: ", e);
+            this._connected = false
+        }
+    }
+
+    async stop() {
+        if (this._connected) {
+            console.log("Stopping free@home API")
+            await this.systemAccessPoint.disconnect()
+            this._connected = false
+        }
+    }
+
+    /**
+     * @param message
+     */
+    broadcastMessage(message) {
+        // Do nothing when receiving a message from SysAccessPoint
+
+    }
+
+    async getAllDevices() {
+        if (this._connected) {
+            console.log("Getting device info");
+            try {
+                const response = await this.systemAccessPoint.getDeviceData();
+                console.log(response);
+                return response;
+            } catch (e) {
+                console.error("Error getting device data", e);
+                return {};
+            }
+        }
+    }
+
+    /**
+     *
+     * @param deviceId
+     * @param channel
+     * @param dataPoint
+     * @param value
+     * @returns {Promise<void>}
+     */
+    async set(deviceId, channel, dataPoint, value) {
+        console.log(
+            `Setting (device, channel, datapoint, value): ${deviceId}, ${channel}, ${dataPoint}, ${value}`
+        );
+
+        if (this._connected) {
+            return await this.systemAccessPoint.setDatapoint(
+                deviceId.toString(),
+                channel.toString(),
+                dataPoint.toString(),
+                value.toString()
+            );
+        }
+    }
+};
+
+```
+
+
 # Automatically Start on Boot
 You can automatically start the API on boot. The following example is for Linux when using the local install (installed in /opt/freeathome-api). You may need to adjust the script if the API is installed globally.
 Copy the contents of the following code section to `/etc/systemd/system/freeathome-api.service` and run `systemctl daemon-reload`.
@@ -93,7 +187,7 @@ WantedBy=multi-user.target
 
 I recommend running the API as a separate user. For this example I have first created a new user with `adduser --system --group --home /opt/freeathome-api freeathome`
 
-# Configuration
+# API Configuration
 The API can be configured using a `config.json` or using environment variables. For unexperienced users I recommend using the `config.json`.
 
 ## Using `config.json`
