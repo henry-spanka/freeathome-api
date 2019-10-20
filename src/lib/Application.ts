@@ -67,18 +67,32 @@ export class Application {
         process.exit(code)
     }
 
-    private getDeviceData(serialNo?: string): any {
+    private getDeviceData(serialNo?: string, channel?: string, dataPoint?: string): any {
         let deviceData = this.systemAccessPoint.getDeviceData()
 
-        if (serialNo === undefined) {
-            return deviceData
-        } else {
-            if (deviceData[serialNo] !== undefined) {
-                return deviceData[serialNo]
-            } else {
-                return {}
+        if (serialNo !== undefined) {
+            deviceData = this.traverse(deviceData, serialNo)
+            if (channel !== undefined) {
+                deviceData = this.traverse(deviceData, "channels", channel)
+                if (dataPoint !== undefined) {
+                    deviceData = this.traverse(deviceData, "datapoints", dataPoint)
+                }
             }
         }
+        return deviceData
+    }
+
+    private traverse(data: any, ...path: string[]) {
+        let viewpoint = data
+        for (const property of path) {
+            viewpoint = property === undefined ? viewpoint : viewpoint[property]
+            if (viewpoint === undefined) {
+                viewpoint = {}
+                break;
+            }
+        }
+
+        return viewpoint
     }
 
     private startWebsocketServer() {
@@ -89,27 +103,26 @@ export class Application {
         this.wss.on('connection', (ws, req) => {
             Application.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Websocket connection established')
 
-            ws.on('message', message => {
+            ws.on('message',  async message => {
                 Application.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Websocket message.', message)
 
                 let parts = message.toString().split('/')
 
-                let command = parts[0]
-
+                let command = parts.shift() // remove command name from args list
                 switch (command) {
                     case 'info':
-                        let deviceData = this.getDeviceData(parts[1])
+                        let deviceData = this.getDeviceData(...parts)
 
                         ws.send(JSON.stringify({ result: deviceData }))
                         break
 
                     case 'raw':
-                        if (parts.length != 5) {
+                        if (parts.length != 4) {
                             Application.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': unexpected length of command')
                             break
                         }
 
-                        this.systemAccessPoint.setDatapoint(parts[1], parts[2], parts[3], parts[4])
+                        await this.setDeviceData(...parts);
                         break
 
                     default:
@@ -127,6 +140,10 @@ export class Application {
         })
     }
 
+    private async setDeviceData(...parts: string[]) {
+        return await this.systemAccessPoint.setDatapoint(parts[0], parts[1], parts[2], parts[3])
+    }
+
     private closeWebsocketServer() {
         if (this.wss !== undefined) {
             this.wss.close()
@@ -140,14 +157,14 @@ export class Application {
         webServer.get('/raw/:serialnumber/:channel/:datapoint/:value', (req, res) => {
             Application.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Webserver message, command raw, params ', req.params.toString())
 
-            this.systemAccessPoint.setDatapoint(req.params.serialnumber, req.params.channel, req.params.datapoint, req.params.value)
+            this.setDeviceData(req.params.serialnumber, req.params.channel, req.params.datapoint, req.params.value);
             res.send(req.params.serialnumber + '/' + req.params.channel + '/' + req.params.datapoint + ': ' + req.params.value)
         })
 
-        webServer.get('/info/:serialnumber?', (req, res) => {
+        webServer.get('/info/:serialnumber?/:channel?/:datapoint?', (req, res) => {
             Application.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Webserver message, command info, params ', req.params.toString())
 
-            let deviceData = this.getDeviceData(req.params.serialnumber)
+            let deviceData = this.getDeviceData(req.params.serialnumber, req.params.channel, req.params.datapoint)
             res.json(deviceData)
         })
 
