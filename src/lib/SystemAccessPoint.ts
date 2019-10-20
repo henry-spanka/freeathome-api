@@ -1,19 +1,23 @@
-import { client as Client } from "@xmpp/client"
-import { Application } from "./Application"
-import { MessageBuilder } from "./MessageBuilder"
+import {client as Client} from "@xmpp/client"
+import {MessageBuilder} from "./MessageBuilder"
 import Axios from "axios"
-import { SystemAccessPointSettings, SystemAccessPointUser } from "./SystemAccessPointSettings"
+import {SystemAccessPointSettings, SystemAccessPointUser} from "./SystemAccessPointSettings"
 import compareVersions from "compare-versions"
-import { Configuration } from "./Configuration"
-import { Crypto } from "./Crypto"
-import { MessageReader } from "./MessageReader"
-import { Message, Result, General } from "./constants"
+import {ClientConfiguration} from "./Configuration"
+import {Crypto} from "./Crypto"
+import {MessageReader} from "./MessageReader"
+import {General, Message, Result} from "./constants"
 import pako from "pako"
-import { XmlParser } from "./XmlParser"
+import {XmlParser} from "./XmlParser"
+import {ConsoleLogger, Logger} from "./Logger";
+
+export interface Subscriber {
+    broadcastMessage(message:string): void
+}
 
 export class SystemAccessPoint {
-    private configuration: Configuration
-    private application: Application
+    private configuration: ClientConfiguration
+    private subscriber: Subscriber
     private client: Client | undefined
     private messageBuilder: MessageBuilder | undefined
     private crypto: Crypto | undefined
@@ -26,9 +30,14 @@ export class SystemAccessPoint {
     private deviceData: any = {}
     private subscribed: boolean = false
 
-    constructor(configuration: Configuration, application: Application) {
+    private logger : Logger = new ConsoleLogger()
+
+    constructor(configuration: ClientConfiguration, subscriber: Subscriber, logger: Logger | null) {
         this.configuration = configuration
-        this.application = application
+        this.subscriber = subscriber
+        if (logger !== undefined && logger !== null){
+            this.logger = logger
+        }
     }
 
     private async createClient() {
@@ -44,8 +53,8 @@ export class SystemAccessPoint {
         }
 
         if (user === undefined) {
-            Application.error('The user does not exist in the System Access Point\'s configuration')
-            Application.exit(1)
+            this.logger.error('The user does not exist in the System Access Point\'s configuration')
+            throw Error(`User ${this.configuration.username} does not exist`)
         }
 
         this.user = user
@@ -77,19 +86,19 @@ export class SystemAccessPoint {
         }
 
         this.client.on('error', err => {
-            Application.error(err.toString())
-            Application.exit(1)
+            this.logger.error(err.toString())
+            throw Error("Unexpected error ")
         })
 
         this.client.on('offline', () => {
-            Application.log('Access Point has gone offline')
+            this.logger.log('Access Point has gone offline')
             this.online = false
             this.subscribed = false
             this.disableKeepAliveMessages()
         })
 
         this.client.on('stanza', async stanza => {
-            Application.debug('Received stanza:', stanza)
+            this.logger.debug('Received stanza:', stanza)
 
             if (stanza.attrs.from == 'mrha@busch-jaeger.de/rpc' && stanza.attrs.to == this.connectedAs) {
                 if (stanza.name == 'iq') {
@@ -98,13 +107,13 @@ export class SystemAccessPoint {
                             let data = Crypto.base64_to_uint8(stanza.getChild('query').getChild('methodResponse').getChild('params').getChild('param').getChild('value').getChildText('base64'))
 
                             if (!this.online) {
-                                Application.log("Received Local Key")
+                                this.logger.log("Received Local Key")
 
                                 let sessionIdentifier = this.crypto!.completeKeyExchange(data)
                                 this.online = true
 
                                 await this.sendMessage(this.messageBuilder!.buildStartNewSessionMessage(sessionIdentifier))
-                                Application.log("Sent New Session Request")
+                                this.logger.log("Sent New Session Request")
                             } else {
                                 await this.handleIQMessage(data)
                             }
@@ -116,7 +125,7 @@ export class SystemAccessPoint {
 
                     await this.sendMessage(this.messageBuilder!.buildSubscribedMessage())
                     this.subscribed = true
-                    Application.log("Sent Subscription Confirmation")
+                    this.logger.log("Sent Subscription Confirmation")
                 }
             } else if (stanza.name == 'message' && stanza.attrs.type == 'headline') {
                 this.parseEncryptedUpdates(stanza)
@@ -124,24 +133,24 @@ export class SystemAccessPoint {
         })
 
         this.client.on('online', async address => {
-            Application.log("Connected as " + address.toString())
+            this.logger.log("Connected as " + address.toString())
             this.connectedAs = address.toString()
 
             let key = this.crypto!.generateLocalKey()
 
             await this.sendMessage(this.messageBuilder!.buildCryptExchangeLocalKeysMessage(Crypto.uint8_to_base64(key)))
-            Application.log("Sent Authenticator")
+            this.logger.log("Sent Authenticator")
         })
 
         // Debug
         this.client.on('status', status => {
-            Application.debug('Received new status:', status)
+            this.logger.debug('Received new status:', status)
         })
         this.client.on('input', input => {
-            Application.debug('Received new input data:', input)
+            this.logger.debug('Received new input data:', input)
         })
         this.client.on('output', output => {
-            Application.debug('Received new output data:', output)
+            this.logger.debug('Received new output data:', output)
         })
 
     }
@@ -190,9 +199,10 @@ export class SystemAccessPoint {
                 break
 
             case Message.MSG_ID_ERROR_RESPONSE:
-                let errorcode = messageReader.readUint32()
-                Application.error(messageReader.readString())
-                Application.exit(1)
+                const errorcode = messageReader.readUint32()
+                const messages = messageReader.readString();
+                this.logger.error(messages)
+                throw Error(`Error response: ${messages}`);
                 break
 
             default:
@@ -210,7 +220,7 @@ export class SystemAccessPoint {
         let version = messageReader.readUint32()
 
         if (version !== General.PROTOCOL_VERSION) {
-            Application.log("Unknown Protocol Version detected. Ignoring ...")
+            this.logger.log("Unknown Protocol Version detected. Ignoring ...")
         }
 
         let Ys = messageReader.readString()
@@ -223,7 +233,7 @@ export class SystemAccessPoint {
         let scram = this.crypto!.getClientScramHandler().createClientFirst(jid)
 
         await this.sendMessage(this.messageBuilder!.buildLoginSaslMessage(scram))
-        Application.log("Sent Login SASL Message")
+        this.logger.log("Sent Login SASL Message")
     }
 
     private async handleCryptedContainerToClient(messageReader: MessageReader) {
@@ -232,7 +242,7 @@ export class SystemAccessPoint {
         var msgId = data.readUint8()
         switch (msgId) {
             case Message.MSG_ID_RPC_CALL_RESULT:
-                Application.debug("Received RPC Call Result Message")
+                this.logger.debug("Received RPC Call Result Message")
                 this.handleRpcCallResult(data)
                 break
 
@@ -241,22 +251,22 @@ export class SystemAccessPoint {
                 throw new Error("Not Implemented")
 
             case Message.MSG_ID_SASL_CHALLENGE:
-                Application.log("Received SASL Challenge")
+                this.logger.log("Received SASL Challenge")
                 let clientFinal = this.crypto!.__YJ(data)
                 await this.sendMessage(this.messageBuilder!.buildSaslResponseMessage(clientFinal))
-                Application.log("Sent SASL Challenge Response")
+                this.logger.log("Sent SASL Challenge Response")
                 break
 
             case Message.MSG_ID_SASL_LOGIN_SUCCESS:
-                Application.log("Received SASL Login Confirmation")
-                Application.log("Successfully Authenticated")
+                this.logger.log("Received SASL Login Confirmation")
+                this.logger.log("Successfully Authenticated")
                 this.crypto!._YK(data)
 
                 await this.sendMessage(this.messageBuilder!.buildCapabilityAnnouncementMessage())
-                Application.log("Announced Capabilities to System Access Point")
+                this.logger.log("Announced Capabilities to System Access Point")
 
                 await this.sendMessage(this.messageBuilder!.buildRequestMasterDataMessage())
-                Application.log("Requested Master Data Structure from System Access Point")
+                this.logger.log("Requested Master Data Structure from System Access Point")
                 break
 
             default:
@@ -290,13 +300,13 @@ export class SystemAccessPoint {
             throw new Error("Failed to parse rpc call result JSON: " + e.toString())
         }
 
-        Application.log("Received Master Update from System Acccess Point")
+        this.logger.log("Received Master Update from System Acccess Point")
 
         this.deviceData = XmlParser.parseMasterUpdate(message.value)
 
         if (!this.subscribed) {
             await this.sendMessage(this.messageBuilder!.buildSubscribeMessage())
-            Application.log("Sent Subscription Request")
+            this.logger.log("Sent Subscription Request")
         }
 
     }
@@ -311,21 +321,20 @@ export class SystemAccessPoint {
         this.crypto!.generateKeypair()
 
         if (compareVersions(this.settings!.flags.version, '2.3.1') > 0) {
-            Application.error('Your System Access Point\'s firmware must be at least 2.3.1')
-            Application.exit(1)
+            throw Error('Your System Access Point\'s firmware must be at least 2.3.1');
         }
 
         try {
             await this.client!.start()
             this.sendKeepAliveMessages()
         } catch (e) {
-            Application.error('Could not connect to System Access Point', e.toString())
-            Application.exit(1)
+            this.logger.error('Could not connect to System Access Point', e.toString())
+            throw Error("Could not connect to System Access Point")
         }
     }
 
     async disconnect() {
-        Application.log("Disconnecting from the System Access Point")
+        this.logger.log("Disconnecting from the System Access Point");
         await this.client!.stop()
     }
 
@@ -374,20 +383,20 @@ export class SystemAccessPoint {
                         for (const [datapointNo, value] of Object.entries<any>(channel.datapoints)) {
                             this.deviceData[serialNo]['channels'][channelNo]['datapoints'][datapointNo] = value
                             
-                            Application.debug("Updated Datapoint: " + serialNo + '/' + channelNo + '/' + datapointNo + '/' + value)
+                            this.logger.debug("Updated Datapoint: " + serialNo + '/' + channelNo + '/' + datapointNo + '/' + value)
                         }
                     }
                 }
             }
         }
 
-        this.application.broadcastMessage(JSON.stringify({result: update, type: 'update'}))
+        this.subscriber.broadcastMessage(JSON.stringify({result: update, type: 'update'}))
     }
 
     async setDatapoint(serialNo: string, channel: string, datapoint: string, value: string) {
         await this.sendMessage(this.messageBuilder!.buildSetDatapointMessage(serialNo, channel, datapoint, value))
 
-        Application.log("Set Datapoint: " + serialNo + '/' + channel + '/' + datapoint + '/' + value)
+        this.logger.log("Set Datapoint: " + serialNo + '/' + channel + '/' + datapoint + '/' + value)
     }
 
     getDeviceData(): any {
