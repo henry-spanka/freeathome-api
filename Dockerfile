@@ -8,9 +8,8 @@ USER node
 
 COPY --chown=node:node . .
 
-RUN npm ci
 RUN npm run clean
-RUN npm run build
+RUN npm ci
 
 FROM node:12-alpine AS app-prod
 
@@ -24,7 +23,7 @@ COPY --from=app-builder --chown=node:node /usr/src/app/dist ./dist
 COPY --from=app-builder --chown=node:node /usr/src/app/bin ./bin
 COPY --chown=node:node package*.json ./
 
-RUN npm ci --only=production
+RUN npm ci --only=production --ignore-scripts
 
 EXPOSE 8080
 EXPOSE 8081
