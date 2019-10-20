@@ -1,2 +1,2 @@
 export {runApp} from './appRunner'
-export {Application} from './lib/Application'
+export {SystemAccessPoint} from './lib/SystemAccessPoint'

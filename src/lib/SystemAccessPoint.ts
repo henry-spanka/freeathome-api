@@ -11,9 +11,12 @@ import { Message, Result, General } from "./constants"
 import pako from "pako"
 import { XmlParser } from "./XmlParser"
 
+interface Subscriber {
+    broadcastMessage(message:string): void
+}
 export class SystemAccessPoint {
     private configuration: Configuration
-    private application: Application
+    private subscriber: Subscriber
     private client: Client | undefined
     private messageBuilder: MessageBuilder | undefined
     private crypto: Crypto | undefined
@@ -26,9 +29,9 @@ export class SystemAccessPoint {
     private deviceData: any = {}
     private subscribed: boolean = false
 
-    constructor(configuration: Configuration, application: Application) {
+    constructor(configuration: Configuration, subscriber: Subscriber) {
         this.configuration = configuration
-        this.application = application
+        this.subscriber = subscriber
     }
 
     private async createClient() {
@@ -381,7 +384,7 @@ export class SystemAccessPoint {
             }
         }
 
-        this.application.broadcastMessage(JSON.stringify({result: update, type: 'update'}))
+        this.subscriber.broadcastMessage(JSON.stringify({result: update, type: 'update'}))
     }
 
     async setDatapoint(serialNo: string, channel: string, datapoint: string, value: string) {
