@@ -67,16 +67,15 @@ export class Application {
         process.exit(code)
     }
 
-    private getDeviceData(serialNo?: string, channel?: string, datapoint?: string): any {
+    private getDeviceData(serialNo?: string, channel?: string, dataPoint?: string): any {
         let deviceData = this.systemAccessPoint.getDeviceData()
-        console.log("got data")
 
         if (serialNo !== undefined) {
             deviceData = this.traverse(deviceData, serialNo)
             if (channel !== undefined) {
                 deviceData = this.traverse(deviceData, "channels", channel)
-                if (datapoint !== undefined) {
-                    deviceData = this.traverse(deviceData, "datapoints", datapoint)
+                if (dataPoint !== undefined) {
+                    deviceData = this.traverse(deviceData, "datapoints", dataPoint)
                 }
             }
         }
@@ -86,7 +85,6 @@ export class Application {
     private traverse(data: any, ...path: string[]) {
         let viewpoint = data
         for (const property of path) {
-            console.log("property: ", property)
             viewpoint = property === undefined ? viewpoint : viewpoint[property]
             if (viewpoint === undefined) {
                 viewpoint = {}
@@ -105,7 +103,7 @@ export class Application {
         this.wss.on('connection', (ws, req) => {
             Application.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Websocket connection established')
 
-            ws.on('message', message => {
+            ws.on('message',  async message => {
                 Application.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Websocket message.', message)
 
                 let parts = message.toString().split('/')
@@ -124,7 +122,7 @@ export class Application {
                             break
                         }
 
-                        this.systemAccessPoint.setDatapoint(parts[0], parts[1], parts[2], parts[3])
+                        await this.setDeviceData(...parts);
                         break
 
                     default:
@@ -142,6 +140,10 @@ export class Application {
         })
     }
 
+    private async setDeviceData(...parts: string[]) {
+        return await this.systemAccessPoint.setDatapoint(parts[0], parts[1], parts[2], parts[3])
+    }
+
     private closeWebsocketServer() {
         if (this.wss !== undefined) {
             this.wss.close()
@@ -155,7 +157,7 @@ export class Application {
         webServer.get('/raw/:serialnumber/:channel/:datapoint/:value', (req, res) => {
             Application.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Webserver message, command raw, params ', req.params.toString())
 
-            this.systemAccessPoint.setDatapoint(req.params.serialnumber, req.params.channel, req.params.datapoint, req.params.value)
+            this.setDeviceData(req.params.serialnumber, req.params.channel, req.params.datapoint, req.params.value);
             res.send(req.params.serialnumber + '/' + req.params.channel + '/' + req.params.datapoint + ': ' + req.params.value)
         })
 
