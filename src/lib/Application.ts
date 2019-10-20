@@ -1,28 +1,34 @@
-import { Configuration } from "./Configuration"
-import { SystemAccessPoint } from "./SystemAccessPoint"
+import {Configuration} from "./Configuration"
+import {Subscriber, SystemAccessPoint} from "./SystemAccessPoint"
 import ws from "ws"
 import express from "express"
 import http from "http"
+import {ConsoleLogger, Logger} from "./Logger";
 
-export class Application {
+export class Application implements Subscriber{
     private configuration: Configuration
     private systemAccessPoint: SystemAccessPoint
-    private static debugEnabled: boolean = false
     private wss: ws.Server | undefined
     private webServer: http.Server | undefined
+    private logger: Logger;
 
-    constructor(configuration: Configuration) {
+    constructor(configuration: Configuration, logger: Logger = new ConsoleLogger()) {
         this.configuration = configuration
+        this.systemAccessPoint = new SystemAccessPoint(configuration, this, logger)
 
-        this.systemAccessPoint = new SystemAccessPoint(configuration, this)
-
-        Application.debugEnabled = configuration.debug
+        this.logger = logger
+        this.logger.debugEnabled = configuration.debug
     }
 
     async run(): Promise<void> {
-        Application.log("Starting free@home API")
+        this.logger.log("Starting free@home API")
 
-        await this.systemAccessPoint.connect()
+        try {
+            await this.systemAccessPoint.connect()
+        } catch (e) {
+            this.logger.debug("Could not connect to free@home API", e)
+            throw Error(`Could not connect to free@home API: ${e.message} `)
+        }
 
         if (this.configuration.wsApi.enabled) {
             this.startWebsocketServer()
@@ -37,30 +43,9 @@ export class Application {
         this.closeWebsocketServer()
         await this.stopWebServer()
 
-        Application.log("Stopping free@home API")
+        this.logger.log("Stopping free@home API")
         await this.systemAccessPoint.disconnect()
 
-        Application.exit(0)
-    }
-
-    static log(...messages: string[] | number[] | Object[]) {
-        for (let message of messages) {
-            console.log(new Date().toLocaleString(), '-', 'INFO' + ":", message)
-        }
-    }
-
-    static error(...messages: string[] | number[] | Object[]) {
-        for (let message of messages) {
-            console.log(new Date().toLocaleString(), '-', 'ERR' + ":", message)
-        }
-    }
-
-    static debug(...messages: string[] | number[] | Object[]) {
-        if (Application.debugEnabled) {
-            for (let message of messages) {
-                console.log(new Date().toLocaleString(), '-', 'DEBUG' + ":", message)
-            }
-        }
     }
 
     static exit(code: number) {
@@ -98,13 +83,13 @@ export class Application {
     private startWebsocketServer() {
         this.wss = new ws.Server({ host: this.configuration.wsApi.address, port: this.configuration.wsApi.port })
 
-        Application.log("Websocket Server started")
+        this.logger.log("Websocket Server started")
 
         this.wss.on('connection', (ws, req) => {
-            Application.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Websocket connection established')
+            this.logger.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Websocket connection established')
 
-            ws.on('message',  async message => {
-                Application.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Websocket message.', message)
+            ws.on('message', async message => {
+                this.logger.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Websocket message.', message)
 
                 let parts = message.toString().split('/')
 
@@ -118,7 +103,7 @@ export class Application {
 
                     case 'raw':
                         if (parts.length != 4) {
-                            Application.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': unexpected length of command')
+                            this.logger.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': unexpected length of command')
                             break
                         }
 
@@ -126,16 +111,16 @@ export class Application {
                         break
 
                     default:
-                        Application.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Command not understood')
+                        this.logger.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Command not understood')
                 }
             })
 
             ws.on('error', () => {
-                Application.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Websocket connection error')
+                this.logger.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Websocket connection error')
             })
 
             ws.on('close', () => {
-                Application.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Websocket connection closed')
+                this.logger.log('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Websocket connection closed')
             })
         })
     }
@@ -147,7 +132,7 @@ export class Application {
     private closeWebsocketServer() {
         if (this.wss !== undefined) {
             this.wss.close()
-            Application.log("Websocket Server stopped")
+            this.logger.log("Websocket Server stopped")
         }
     }
 
@@ -155,14 +140,14 @@ export class Application {
         let webServer = express()
 
         webServer.get('/raw/:serialnumber/:channel/:datapoint/:value', (req, res) => {
-            Application.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Webserver message, command raw, params ', req.params.toString())
+            this.logger.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Webserver message, command raw, params ', req.params.toString())
 
             this.setDeviceData(req.params.serialnumber, req.params.channel, req.params.datapoint, req.params.value);
             res.send(req.params.serialnumber + '/' + req.params.channel + '/' + req.params.datapoint + ': ' + req.params.value)
         })
 
         webServer.get('/info/:serialnumber?/:channel?/:datapoint?', (req, res) => {
-            Application.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Webserver message, command info, params ', req.params.toString())
+            this.logger.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Webserver message, command info, params ', req.params.toString())
 
             let deviceData = this.getDeviceData(req.params.serialnumber, req.params.channel, req.params.datapoint)
             res.json(deviceData)
@@ -170,7 +155,7 @@ export class Application {
 
         return new Promise<void>((resolve) => {
             this.webServer = webServer.listen(this.configuration.httpApi.port, this.configuration.httpApi.address, () => {
-                Application.log("Webserver Started")
+                this.logger.log("Webserver Started")
                 resolve()
             })
         })
@@ -183,7 +168,7 @@ export class Application {
                     if (err) {
                         reject()
                     } else {
-                        Application.log("Webserver Stopped")
+                        this.logger.log("Webserver Stopped")
                         resolve()
                     }
                 })

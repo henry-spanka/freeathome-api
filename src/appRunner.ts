@@ -1,17 +1,18 @@
 import {Configuration, ServerConfiguration} from "./lib/Configuration"
 import {Application} from "./lib/Application"
+import {ConsoleLogger} from "./lib/Logger";
 
 export function runApp() {
-
+    const logger = new ConsoleLogger()
     let config: Configuration
     try {
         config = Configuration.readFromFile("config.json")
     } catch (e) {
-        Application.log("Could not read/parse configuration file - Trying to use environment instead")
+        logger.log("Could not read/parse configuration file - Trying to use environment instead")
 
         if (!('FREEATHOME_HOSTNAME' in process.env) || !('FREEATHOME_USERNAME' in process.env) || !('FREEATHOME_PASSWORD' in process.env)) {
-            Application.error("Required environment variables (hostname, username, password not set")
-            Application.exit(1)
+            logger.error("Required environment variables (hostname, username, password not set")
+            exit(1)
         }
 
         let httpConfiguration = new ServerConfiguration(!('FREEATHOME_HTTP_ENABLED' in process.env && process.env.FREEATHOME_HTTP_ENABLED == '0'), '0.0.0.0', 8080)
@@ -25,9 +26,16 @@ export function runApp() {
         throw up
     })
 
-    let app: Application = new Application(config!)
+    let app: Application = new Application(config!, logger)
 
-    process.on('SIGINT', () => app.stop())
+    process.on('SIGINT', async () => {
+        await app.stop()
+        exit(0)
+    })
 
     app.run()
+}
+
+function exit(code : number) {
+    process.exit(code)
 }
