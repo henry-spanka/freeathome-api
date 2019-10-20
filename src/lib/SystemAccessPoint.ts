@@ -12,7 +12,7 @@ import {XmlParser} from "./XmlParser"
 import {ConsoleLogger, Logger} from "./Logger";
 
 export interface Subscriber {
-    broadcastMessage(message:string): void
+    broadcastMessage(message:any): void
 }
 
 export class SystemAccessPoint {
@@ -87,7 +87,7 @@ export class SystemAccessPoint {
 
         this.client.on('error', err => {
             this.logger.error(err.toString())
-            throw Error("Unexpected error ")
+            this.subscriber.broadcastMessage( {type:'error', result: err})
         })
 
         this.client.on('offline', () => {
@@ -390,7 +390,7 @@ export class SystemAccessPoint {
             }
         }
 
-        this.subscriber.broadcastMessage(JSON.stringify({result: update, type: 'update'}))
+        this.subscriber.broadcastMessage({result: update, type: 'update'})
     }
 
     async setDatapoint(serialNo: string, channel: string, datapoint: string, value: string) {

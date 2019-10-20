@@ -178,11 +178,16 @@ export class Application implements Subscriber{
         })
     }
 
-    broadcastMessage(message: string) {
+    broadcastMessage(message: any) {
+        if (message.type === 'error'){
+            throw Error(`Received error broadcast message, ${message.result}`)
+        }
+
+        const msg = JSON.stringify(message)
         if (this.wss !== undefined) {
             this.wss.clients.forEach(client => {
                 if (client.readyState === ws.OPEN) {
-                    client.send(message);
+                    client.send(msg);
                 }
             })
         }
