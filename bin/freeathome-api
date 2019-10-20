@@ -10,4 +10,5 @@ var fs = require('fs');
 var lib = path.join(path.dirname(fs.realpathSync(__filename)), '../dist');
 
 // Run freeathome-api
-require(lib + '/index.js')
+var {runApp} = require(lib + '/index.js');
+runApp();
