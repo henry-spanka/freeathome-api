@@ -1,4 +1,3 @@
-import {client as Client} from "@xmpp/client"
 import {MessageBuilder} from "./MessageBuilder"
 import Axios from "axios"
 import {SystemAccessPointSettings, SystemAccessPointUser} from "./SystemAccessPointSettings"
@@ -10,15 +9,13 @@ import {General, Message, Result} from "./constants"
 import pako from "pako"
 import {XmlParser} from "./XmlParser"
 import {ConsoleLogger, Logger} from "./Logger";
-
-export interface Subscriber {
-    broadcastMessage(message:any): void
-}
+import {GuardedClient} from "./GuardedClient";
+import {Subscriber} from "./Subscriber";
 
 export class SystemAccessPoint {
     private configuration: ClientConfiguration
-    private subscriber: Subscriber
-    private client: Client | undefined
+    private readonly subscriber: Subscriber
+    private client: GuardedClient | undefined
     private messageBuilder: MessageBuilder | undefined
     private crypto: Crypto | undefined
     private online: boolean = false
@@ -61,13 +58,15 @@ export class SystemAccessPoint {
 
         let username = user!.jid.split('@')[0]
 
-        this.client = new Client({
+        this.client = new GuardedClient(this.subscriber, {
             service: 'ws://' + this.configuration.hostname + ':5280/xmpp-websocket',
             domain: 'busch-jaeger.de',
             resource: 'freeathome-api',
             username: username,
             password: this.configuration.password
-        })
+        }, this.logger)
+
+
 
         this.crypto = new Crypto(user!, this.configuration.password)
 
@@ -87,7 +86,10 @@ export class SystemAccessPoint {
 
         this.client.on('error', err => {
             this.logger.error(err.toString())
-            this.subscriber.broadcastMessage( {type:'error', result: err})
+            this.subscriber.broadcastMessage({
+                type: "error",
+                result: err
+            })
         })
 
         this.client.on('offline', () => {
@@ -97,7 +99,7 @@ export class SystemAccessPoint {
             this.disableKeepAliveMessages()
         })
 
-        this.client.on('stanza', async stanza => {
+        this.client.guardedOn('stanza', async stanza => {
             this.logger.debug('Received stanza:', stanza)
 
             if (stanza.attrs.from == 'mrha@busch-jaeger.de/rpc' && stanza.attrs.to == this.connectedAs) {
