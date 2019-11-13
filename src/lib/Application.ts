@@ -1,9 +1,10 @@
 import {Configuration} from "./Configuration"
-import {Subscriber, SystemAccessPoint} from "./SystemAccessPoint"
+import {SystemAccessPoint} from "./SystemAccessPoint"
 import ws from "ws"
 import express from "express"
 import http from "http"
 import {ConsoleLogger, Logger} from "./Logger";
+import {Subscriber} from "./Subscriber";
 
 export class Application implements Subscriber{
     private configuration: Configuration
@@ -139,10 +140,10 @@ export class Application implements Subscriber{
     private async startWebServer() {
         let webServer = express()
 
-        webServer.get('/raw/:serialnumber/:channel/:datapoint/:value', (req, res) => {
+        webServer.get('/raw/:serialnumber/:channel/:datapoint/:value', async (req, res) => {
             this.logger.debug('[' + req.connection.remoteAddress + ':' + req.connection.remotePort + ']' + ': Received Webserver message, command raw, params ', req.params.toString())
 
-            this.setDeviceData(req.params.serialnumber, req.params.channel, req.params.datapoint, req.params.value);
+            await this.setDeviceData(req.params.serialnumber, req.params.channel, req.params.datapoint, req.params.value);
             res.send(req.params.serialnumber + '/' + req.params.channel + '/' + req.params.datapoint + ': ' + req.params.value)
         })
 
@@ -178,11 +179,16 @@ export class Application implements Subscriber{
         })
     }
 
-    broadcastMessage(message: string) {
+    broadcastMessage(message: any) {
+        if (message.type === 'error'){
+            throw Error(`Received error broadcast message, ${message.result}`)
+        }
+
+        const msg = JSON.stringify(message)
         if (this.wss !== undefined) {
             this.wss.clients.forEach(client => {
                 if (client.readyState === ws.OPEN) {
-                    client.send(message);
+                    client.send(msg);
                 }
             })
         }
