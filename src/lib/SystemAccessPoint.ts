@@ -322,7 +322,7 @@ export class SystemAccessPoint {
         await this.crypto!.ready()
         this.crypto!.generateKeypair()
 
-        if (compareVersions(this.settings!.flags.version, '2.3.1') > 0) {
+        if (compareVersions(this.settings!.flags.version, '2.3.1') < 0) {
             throw Error('Your System Access Point\'s firmware must be at least 2.3.1');
         }
 
