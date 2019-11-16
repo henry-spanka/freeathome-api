@@ -221,6 +221,10 @@ The communication with the System Access Point is encrypted and authenticated wi
 # Note
 This API is still in an early state. After Busch-Jaeger released an updated firmware (>= 2.3.0), which is not compatible with other APIs anymore, I have written a new API from scratch to bring my home back to life and make Apple HomeKit work again ([homebridge-buschjaeger](https://github.com/henry-spanka/homebridge-buschjaeger)). I have tried to keep the API endpoints of [sstadlberger/home](https://github.com/sstadlberger/home)'s API so I don't need to rewrite all my plugins to integrate with a new API. Therefore this project should be backwards-compatible.
 
+# Known Issues
+
+* If you do not receive any updates from the System Access Point or are unable to set any datapoints log into the System Access Point interface and log out again. This must be done sometimes after a reboot of the System Access Point to enable websocket notifications.
+
 # API Endpoints
 
 ## Set a datapoint
