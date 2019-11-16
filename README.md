@@ -15,7 +15,7 @@ Busch-Jaeger free@home API to control actuators.
 # Description
 This API exposes a websocket and HTTP API which can be used to receive and set state changes of free@home actuators. It
 can be used as a library as well in other applications. 
-It requires a System Access Point with version 2.3.0 or higher.
+It requires a System Access Point with version 2.3.1 or higher.
 
 # Features
 * Control your Busch-Jaeger Lights, Outlets, Blinds, etc. via HTTP or Websocket requests
@@ -25,7 +25,7 @@ It requires a System Access Point with version 2.3.0 or higher.
 - Busch-Jaeger System Access Point 2.0
 
 # Requirements
-* Node.JS 10
+* Node.JS >= 10
 * Linux or macOS (may run on Windows but not tested)
 
 # Setup / Installation
@@ -206,6 +206,7 @@ The following environment variables can be set to configure the API:
 | FREEATHOME_PASSWORD       | yes       | string | | System Access Point Password
 | FREEATHOME_HTTP_ENABLED   | no        | 0 \| 1 | 1 | Enable/Disable the HTTP API
 | FREEATHOME_WS_ENABLED     | no        | 0 \| 1 | 1 | Enable/Disable the Websocket API
+| FREEATHOME_DEBUG          | no        | 0 \| 1 | 1 | Enable/Disable Debug Logging
 
 The environment variables can be passed to node with (When using local installation):
 
