@@ -1,6 +1,6 @@
 {
   "name": "freeathome-api",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "HTTP and Websocket API for free@home",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
