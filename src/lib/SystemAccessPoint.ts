@@ -158,7 +158,11 @@ export class SystemAccessPoint {
     }
 
     private parseEncryptedUpdates(stanza: any) {
-        let items = stanza.getChild('event').getChild('items').getChildren('item').filter((item: any) => item.getChild('update').attrs.xmlns == 'http://abb.com/protocol/update_encrypted')
+        let items = stanza.getChild('event').getChild('items').getChildren('item').filter((item: any) => {
+            let update = item.getChild('update')
+
+            return update !== undefined && update.attrs.xmlns == 'http://abb.com/protocol/update_encrypted'
+        })
 
         for (let item of items) {
             let data = item.getChild('update').getChildText('data')
