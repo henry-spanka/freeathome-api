@@ -206,7 +206,7 @@ export class Crypto {
         return result
     }
 
-    decryptPubSub(data: string): Uint8Array {
+    decryptPubSub(data: string, type: string = 'update'): Uint8Array {
         let bytes = asmCrypto.base64_to_bytes(data)
 
         if (!bytes || bytes.length == 0) {
@@ -218,19 +218,19 @@ export class Crypto {
         let messageReader = new MessageReader(bytes.slice(16, 24))
 
         var dF = messageReader.readUint64()
-        if (!this.__Yq['update']) {
-            this.__Yq['update'] = {
+        if (!this.__Yq[type]) {
+            this.__Yq[type] = {
                 'sequenceCounter': 0,
                 'skippedSymmetricSequences': new Set()
             }
         }
-        var dH = this.__Yq['update'].sequenceCounter
+        var dH = this.__Yq[type].sequenceCounter
         if (dF < dH) {
-            if (!this.__Yq['update'].skippedSymmetricSequences.has(dF)) {
+            if (!this.__Yq[type].skippedSymmetricSequences.has(dF)) {
                 throw new Error("Unexpected sequence in received symmetric nonce " + dF + '(' + dH + ')')
             }
 
-            this.__Yq['update'].skippedSymmetricSequences.delete(dF)
+            this.__Yq[type].skippedSymmetricSequences.delete(dF)
         }
 
         if (dF > dH) {
@@ -246,20 +246,20 @@ export class Crypto {
                     break
                 }
 
-                this.__Yq['update'].skippedSymmetricSequences.add(x)
+                this.__Yq[type].skippedSymmetricSequences.add(x)
                 x--
             }
 
-            if (this.__Yq['update'].skippedSymmetricSequences.size > 32) {
-                var a = Array.from(this.__Yq['update'].skippedSymmetricSequences).sort()
+            if (this.__Yq[type].skippedSymmetricSequences.size > 32) {
+                var a = Array.from(this.__Yq[type].skippedSymmetricSequences).sort()
                 var dK = a.length - 32
                 for (i = 0; i < dK; i++) {
-                    this.__Yq['update'].skippedSymmetricSequences.delete(a[i])
+                    this.__Yq[type].skippedSymmetricSequences.delete(a[i])
                 }
             }
         }
 
-        this.__Yq['update'].sequenceCounter += 1
+        this.__Yq[type].sequenceCounter += 1
         var dL = sodium.crypto_secretbox_open_easy(bytes.slice(sodium.crypto_box_NONCEBYTES), nonce, this.__Yx!)
         if (!dL) {
             throw new Error("Failed to decrypt message")

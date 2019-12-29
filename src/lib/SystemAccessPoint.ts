@@ -166,7 +166,7 @@ export class SystemAccessPoint {
 
         for (let item of items) {
             let data = item.getChild('update').getChildText('data')
-            let update = this.parseDecryptedData(new MessageReader(this.crypto!.decryptPubSub(data)))
+            let update = this.parseDecryptedData(new MessageReader(this.crypto!.decryptPubSub(data, 'update')))
 
             this.applyIncrementalUpdate(XmlParser.parseUpdate(update))
         }
