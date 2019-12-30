@@ -11,6 +11,7 @@ import {XmlParser} from "./XmlParser"
 import {ConsoleLogger, Logger} from "./Logger";
 import {GuardedClient} from "./GuardedClient";
 import {Subscriber} from "./Subscriber";
+import {Element, childrenEqual} from "ltx"
 
 export class SystemAccessPoint {
     private configuration: ClientConfiguration
@@ -130,7 +131,7 @@ export class SystemAccessPoint {
                     this.logger.log("Sent Subscription Confirmation")
                 }
             } else if (stanza.name == 'message' && stanza.attrs.type == 'headline') {
-                this.parseEncryptedUpdates(stanza)
+                this.handleEvent(stanza)
             }
         })
 
@@ -157,19 +158,60 @@ export class SystemAccessPoint {
 
     }
 
-    private parseEncryptedUpdates(stanza: any) {
-        let items = stanza.getChild('event').getChild('items').getChildren('item').filter((item: any) => {
-            let update = item.getChild('update')
+    private handleEvent(stanza: Element) {
+        let event = stanza.getChild('event')
 
-            return update !== undefined && update.attrs.xmlns == 'http://abb.com/protocol/update_encrypted'
-        })
-
-        for (let item of items) {
-            let data = item.getChild('update').getChildText('data')
-            let update = this.parseDecryptedData(new MessageReader(this.crypto!.decryptPubSub(data, 'update')))
-
-            this.applyIncrementalUpdate(XmlParser.parseUpdate(update))
+        if (event === undefined) {
+            return
         }
+        
+        let items = event.getChild('items')
+
+        if (items === undefined) {
+            return
+        }
+
+        items.getChildren('item').forEach(item => {
+            item.children.forEach(child => {
+                let data: string = this.unwrapEventData(child)
+
+                switch (child.name) {
+                    case 'update':
+                        this.applyIncrementalUpdate(XmlParser.parseUpdate(data))
+                        break
+                    case 'log':
+                        this.logger.warn("Received Log Data which is currently not supported: " + data)
+                        break
+                }
+            })
+        })
+    }
+
+    private unwrapEventData(item: Element): string {
+        let data: string | null = null;
+
+        switch (item.name) {
+            case 'update':
+                data = item.getChildText('data')
+                break
+            case 'log':
+                data = item.getChildText('message')
+                break
+            default:
+                throw new Error("Cannot unwrap event data!")
+        }
+
+        if (data === null) {
+            throw new Error("Event data is null!")
+        }
+
+        let xmlns: string = item.getAttr('xmlns')
+
+        if (!xmlns.endsWith("_encrypted")) {
+            throw new Error("Received data which is not encrypted!")
+        }
+
+        return this.parseDecryptedData(new MessageReader(this.crypto!.decryptPubSub(data, item.name)))
     }
 
     private parseDecryptedData(messageReader: MessageReader): string {
