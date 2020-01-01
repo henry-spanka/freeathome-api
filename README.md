@@ -37,7 +37,7 @@ Alternatively you can also use docker if Node >= 10 is not available or you want
 1. Create a new directory for the project and enter it
 2. Run `npm install freeathome-api --save`
 3. See [Configuration](#configuration) section.
-4. Start the API with `node bin/freeathome-api`
+4. Start the API with `node node_modules/freeathome-api/bin/freeathome-api`
 5. Star the repository ;)
 
 ## Globally
