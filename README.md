@@ -1,6 +1,6 @@
 [Install Homebridge]: https://github.com/nfarina/homebridge#installation
 [Install Busch-Jaeger API]: https://github.com/sstadlberger/home
-[Configuration]: #Configuration
+[Configuration]: #api-configuration
 
 [sstadlberger]: https://github.com/sstadlberger
 [Home Hub]: https://support.apple.com/en-us/HT207057
@@ -36,13 +36,13 @@ Alternatively you can also use docker if Node >= 10 is not available or you want
 ## Locally
 1. Create a new directory for the project and enter it
 2. Run `npm install freeathome-api --save`
-3. See [Configuration](#configuration) section.
+3. See [Configuration](#api-configuration) section.
 4. Start the API with `node node_modules/freeathome-api/bin/freeathome-api`
 5. Star the repository ;)
 
 ## Globally
 1. Run `npm install freeathome-api -g`
-2. See [Configuration](#configuration) section.
+2. See [Configuration](#api-configuration) section.
 3. Start the API with `freeathome-api`
 4. Star the repository ;)
 
@@ -59,7 +59,7 @@ henryspanka/freeathome-api:$IMAGE_ID
 Replace *$IMAGE_ID* with the latest version on [Docker Hub](https://hub.docker.com/r/henryspanka/freeathome-api/tags).
 Do not use the *latest* tag unless necessary as it is built from the master branch and may contain untested code/features.
 
-For more configuration options see [Configuration](#configuration).
+For more configuration options see [Configuration](#api-configuration).
 
 To view the logs and see if any errors during authentication occurred run:
 ```sh
