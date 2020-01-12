@@ -206,7 +206,7 @@ The following environment variables can be set to configure the API:
 | FREEATHOME_PASSWORD       | yes       | string | | System Access Point Password
 | FREEATHOME_HTTP_ENABLED   | no        | 0 \| 1 | 1 | Enable/Disable the HTTP API
 | FREEATHOME_WS_ENABLED     | no        | 0 \| 1 | 1 | Enable/Disable the Websocket API
-| FREEATHOME_DEBUG          | no        | 0 \| 1 | 1 | Enable/Disable Debug Logging
+| FREEATHOME_DEBUG          | no        | 0 \| 1 | 0 | Enable/Disable Debug Logging
 
 The environment variables can be passed to node with (When using local installation):
 
