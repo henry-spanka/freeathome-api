@@ -52,7 +52,7 @@ export class SystemAccessPoint {
 
         if (user === undefined) {
             this.logger.error('The user does not exist in the System Access Point\'s configuration')
-            throw Error(`User ${this.configuration.username} does not exist`)
+            throw new Error(`User ${this.configuration.username} does not exist`)
         }
 
         this.user = user
@@ -77,7 +77,24 @@ export class SystemAccessPoint {
     }
 
     private async getSettings(): Promise<SystemAccessPointSettings> {
-        return <SystemAccessPointSettings>(await Axios.get('http://' + this.configuration.hostname + '/settings.json')).data
+        let response = await Axios.get('http://' + this.configuration.hostname + '/settings.json')
+
+        if (response.status != 200) {
+            this.logger.error("Unexpected status code from System Access Point while retrieving settings.json.")
+            throw new Error("Unexpected status code from System Access Point while retrieving settings.json.")
+        }
+
+        if (!('flags' in response.data) || !('version' in response.data.flags)) {
+            this.logger.error("Flags key does not exist in settings.json.")
+            throw new Error("Flags key does not exist in settings.json.")
+        }
+
+        if (!('users' in response.data || !Array.isArray(response.data.users))) {
+            this.logger.error("Users key does not exist in settings.json.")
+            throw new Error("Users key does not exist in settings.json.")
+        }
+        
+        return <SystemAccessPointSettings>response.data
     }
 
     private registerHandlers() {
