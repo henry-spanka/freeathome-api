@@ -24,6 +24,13 @@ It requires a System Access Point with version 2.3.1 or higher.
 - Busch-Jaeger System Access Point
 - Busch-Jaeger System Access Point 2.0
 
+# Tested Versions
+|Version|Supported|Notes|
+|---|---|---|
+|2.5.0|:heavy_check_mark:|no known issues|
+|2.4.0|:heavy_check_mark:|no known issues|
+|2.3.1|:heavy_check_mark:|no known issues|
+
 # Requirements
 * Node.JS >= 10
 * Linux or macOS (may run on Windows but not tested)
