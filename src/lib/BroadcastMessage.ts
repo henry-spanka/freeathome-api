@@ -1,4 +1,4 @@
 export interface BroadcastMessage {
-    type: 'error' | 'update',
+    type: 'error' | 'update' | 'subscribed',
     result: any
 }

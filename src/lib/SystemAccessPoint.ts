@@ -114,6 +114,10 @@ export class SystemAccessPoint {
             this.logger.log('Access Point has gone offline')
             this.online = false
             this.subscribed = false
+            this.subscriber.broadcastMessage({
+                'type': 'subscribed',
+                'result': false
+            })
             this.disableKeepAliveMessages()
         })
 
@@ -145,6 +149,10 @@ export class SystemAccessPoint {
 
                     await this.sendMessage(this.messageBuilder!.buildSubscribedMessage())
                     this.subscribed = true
+                    this.subscriber.broadcastMessage({
+                        'type': 'subscribed',
+                        'result': true
+                    })
                     this.logger.log("Sent Subscription Confirmation")
                 }
             } else if (stanza.name == 'message' && stanza.attrs.type == 'headline') {
