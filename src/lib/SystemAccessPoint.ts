@@ -320,8 +320,8 @@ export class SystemAccessPoint {
                 break
 
             case Message.MSG_ID_ERROR_RESPONSE:
-                //cE = this.__YH(cC)
-                throw new Error("Not Implemented")
+                this.handleErrorResponse(data)
+                break
 
             case Message.MSG_ID_SASL_CHALLENGE:
                 this.logger.log("Received SASL Challenge")
@@ -382,6 +382,13 @@ export class SystemAccessPoint {
             this.logger.log("Sent Subscription Request")
         }
 
+    }
+
+    private handleErrorResponse(messageReader: MessageReader) {
+        let code = messageReader.readUint32()
+        let message = messageReader.readString()
+
+        this.logger.warn("Error reponse received, code: " + code + ", message: " + message);
     }
 
     private async sendMessage(message: any) {
