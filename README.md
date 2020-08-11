@@ -226,7 +226,7 @@ FREEATHOME_HOSTNAME=bj.example.com FREEATHOME_USERNAME=freeathome FREEATHOME_PAS
 The communication with the System Access Point is encrypted and authenticated with asymmetric encryption. This API uses the same encryption as used by the Browser when communicating with the System Access Point.
 
 # Note
-This API is still in an early state. After Busch-Jaeger released an updated firmware (>= 2.3.0), which is not compatible with other APIs anymore, I have written a new API from scratch to bring my home back to life and make Apple HomeKit work again ([homebridge-buschjaeger](https://github.com/henry-spanka/homebridge-buschjaeger)). I have tried to keep the API endpoints of [sstadlberger/home](https://github.com/sstadlberger/home)'s API so I don't need to rewrite all my plugins to integrate with a new API. Therefore this project should be backwards-compatible.
+This API is still in an early state. After Busch-Jaeger released an updated firmware (>= 2.3.0), which is not compatible with other APIs anymore, I have written a new API from scratch to bring my home back to life and make Apple HomeKit work again ([homebridge-freeathome](https://github.com/henry-spanka/homebridge-freeathome)). I have tried to keep the API endpoints of [sstadlberger/home](https://github.com/sstadlberger/home)'s API so I don't need to rewrite all my plugins to integrate with a new API. Therefore this project should be backwards-compatible.
 
 # Known Issues
 
