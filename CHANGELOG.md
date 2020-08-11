@@ -1,5 +1,12 @@
 # Changelog
 
+### 1.1.1 (2020-08-11)
+* **Enhancement:** Report error responses
+* **Enhancement:** Broadcast subscriber status
+* **Enhancement:** Connection handling improved (#24)
+* **Bug Fix:** Fixed symmetric nonce sequence
+* **Bug Fix:** Fixed update message filtering to prevent crash (#18)
+
 ## 1.1.0 (2019-12-28)
 
 * **Enhancement:** Improved Error Handling (#12)
