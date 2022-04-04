@@ -12,6 +12,7 @@ import {ConsoleLogger, Logger} from "./Logger";
 import {GuardedClient} from "./GuardedClient";
 import {Subscriber} from "./Subscriber";
 import {Element, childrenEqual} from "ltx"
+import { xml } from "@xmpp/client"
 
 export class SystemAccessPoint {
     private configuration: ClientConfiguration
@@ -154,6 +155,7 @@ export class SystemAccessPoint {
                         'result': true
                     })
                     this.logger.log("Sent Subscription Confirmation")
+                    await this.sendMessage(this.messageBuilder!.buildCapabilityAnnouncementMessageSub())
                 }
             } else if (stanza.name == 'message' && stanza.attrs.type == 'headline') {
                 this.handleEvent(stanza)
@@ -205,7 +207,8 @@ export class SystemAccessPoint {
                         this.applyIncrementalUpdate(XmlParser.parseUpdate(data))
                         break
                     case 'log':
-                        this.logger.warn("Received Log Data which is currently not supported: " + data)
+                        // Firmware >= 3.0 causes log messages to flood so we will disable this for now.
+                        //this.logger.warn("Received Log Data which is currently not supported: " + data)
                         break
                 }
             })
@@ -400,8 +403,8 @@ export class SystemAccessPoint {
         await this.crypto!.ready()
         this.crypto!.generateKeypair()
 
-        if (compareVersions(this.settings!.flags.version, '2.3.1') < 0) {
-            throw Error('Your System Access Point\'s firmware must be at least 2.3.1');
+        if (compareVersions(this.settings!.flags.version, '3.0.1') < 0) {
+            throw Error('Your System Access Point\'s firmware must be at least 3.0.1');
         }
 
         try {

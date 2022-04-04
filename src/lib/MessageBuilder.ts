@@ -10,6 +10,7 @@ import { LoginSaslPayload } from "./messages/payloads/LoginSaslPayload"
 import { SaslResponsePayload } from "./messages/payloads/SaslResponsePayload"
 import { Crypto } from "./Crypto"
 import { SetDatapointPayload } from "./messages/payloads/SetDatapointPayload"
+import { CapabilityAnnouncementMessageSub } from "./messages/CapabilityAnnouncementMessageSub"
 
 export class MessageBuilder {
     private username: string
@@ -47,6 +48,10 @@ export class MessageBuilder {
 
     buildCapabilityAnnouncementMessage(): any {
         return new CapabilityAnnouncementMessage().build(this.getMessageId())
+    }
+
+    buildCapabilityAnnouncementMessageSub(): any {
+        return new CapabilityAnnouncementMessageSub().build(this.getMessageId())
     }
 
     buildRequestMasterDataMessage(): any {
