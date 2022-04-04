@@ -46,7 +46,7 @@
   "dependencies": {
     "@xmpp/client": "^0.13.1",
     "asmcrypto.js": "^2.3.2",
-    "axios": "^0.19.0",
+    "axios": "^0.21.2",
     "compare-versions": "^3.5.1",
     "express": "^4.17.1",
     "libsodium-wrappers-sumo": "^0.7.5",
