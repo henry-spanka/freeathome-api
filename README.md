@@ -247,6 +247,30 @@ To get the state of a specific actuator send the following payload: `info/{seria
 ## Receive real-time updates
 Real-Time updates are automatically sent to all connected websocket clients. Messages which have `{type: 'update'}` set are updates.
 
+# Technical description
+This API reflects the internal XML structure of the ABB free@home API. Therefore, the cloud API is similar to this API.
+
+## functionId
+The attribute `functionID` describes what function a device or a channel has. [Full list of functionIds](https://developer.eu.mybuildings.abb.com/fah_cloud/reference/functionids/)
+
+Examples for `functionIds`:
+* 0x0000 	FID_SWITCH_SENSOR 	Control element
+* 0x0001 	FID_DIMMING_SENSOR 	Dimming sensor
+* 0x0003 	FID_BLIND_SENSOR 	Blind sensor
+* 0x0004 	FID_STAIRCASE_LIGHT_SENSOR 	Stairwell light sensor
+* 0x0005 	FID_FORCE_ON_OFF_SENSOR 	Force On/Off sensor
+* 0x0006 	FID_SCENE_SENSOR 	Scene sensor
+* 0x0007 	FID_SWITCH_ACTUATOR 	Switch actuator
+* 0x0009 	FID_SHUTTER_ACTUATOR 	Blind actuator
+* 0x000A 	FID_ROOM_TEMPERATURE_CONTROLLER_MASTER_WITH_FAN 	Room temperature controller with fan speed level
+* 0x000B 	FID_ROOM_TEMPERATURE_CONTROLLER_SLAVE 	Room temperature controller extension unit
+* 0x000C 	FID_WIND_ALARM_SENSOR 	Wind Alarm
+* 0x000D 	FID_FROST_ALARM_SENSOR 	Frost Alarm
+* 0x000E 	FID_RAIN_ALARM_SENSOR 	Rain Alarm
+* 0x000F 	FID_WINDOW_DOOR_SENSOR 	Window sensor
+* 0x0011 	FID_MOVEMENT_DETECTOR 	Movement Detector
+* 0x0012 	FID_DIMMING_ACTUATOR 	Dim actuator
+
 # Changelog
 The changelog can be viewed [here](CHANGELOG.md).
 
