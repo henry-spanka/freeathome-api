@@ -27,6 +27,7 @@ It requires a System Access Point with version 2.3.1 or higher.
 # Tested Versions
 |Version|Supported|Notes|
 |---|---|---|
+|3.0.1|:heavy_check_mark:|no known issues|
 |2.5.0|:heavy_check_mark:|no known issues|
 |2.4.0|:heavy_check_mark:|no known issues|
 |2.3.1|:heavy_check_mark:|no known issues|
