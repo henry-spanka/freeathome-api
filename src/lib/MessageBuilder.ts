@@ -1,6 +1,7 @@
 import { KeepAliveMessage } from "./messages/KeepAliveMessage"
 import { SubscribeMessage } from "./messages/SubscribeMessage"
 import { CapabilityAnnouncementMessage } from "./messages/CapabilityAnnouncementMessage"
+import { CapabilityAnnouncementMessageLegacy } from "./messages/CapabilityAnnouncementMessageLegacy"
 import { RequestMasterDataPayload } from "./messages/payloads/RequestMasterDataPayload"
 import { SubscribedMessage } from "./messages/SubscribedMessage"
 import { CryptExchangeLocalKeysMessage } from "./messages/CryptExchangeLocalKeysMessage"
@@ -48,6 +49,10 @@ export class MessageBuilder {
 
     buildCapabilityAnnouncementMessage(): any {
         return new CapabilityAnnouncementMessage().build(this.getMessageId())
+    }
+
+    buildCapabilityAnnouncementMessageLegacy(): any {
+        return new CapabilityAnnouncementMessageLegacy().build(this.getMessageId())
     }
 
     buildCapabilityAnnouncementMessageSub(): any {

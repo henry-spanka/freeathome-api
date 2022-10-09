@@ -11,8 +11,7 @@ import {XmlParser} from "./XmlParser"
 import {ConsoleLogger, Logger} from "./Logger";
 import {GuardedClient} from "./GuardedClient";
 import {Subscriber} from "./Subscriber";
-import {Element, childrenEqual} from "ltx"
-import { xml } from "@xmpp/client"
+import {Element} from "ltx"
 
 export class SystemAccessPoint {
     private configuration: ClientConfiguration
@@ -154,8 +153,14 @@ export class SystemAccessPoint {
                         'type': 'subscribed',
                         'result': true
                     })
+
                     this.logger.log("Sent Subscription Confirmation")
-                    await this.sendMessage(this.messageBuilder!.buildCapabilityAnnouncementMessageSub())
+
+                    if (compareVersions(this.settings!.flags.version, '3.0.1') >= 0) {
+                        this.logger.log("Detected Access Point firmware >= 3.0.1 - Sending Capability Announcement Message Sub.")
+                        await this.sendMessage(this.messageBuilder!.buildCapabilityAnnouncementMessageSub())
+                    }
+
                 }
             } else if (stanza.name == 'message' && stanza.attrs.type == 'headline') {
                 this.handleEvent(stanza)
@@ -338,7 +343,14 @@ export class SystemAccessPoint {
                 this.logger.log("Successfully Authenticated")
                 this.crypto!._YK(data)
 
-                await this.sendMessage(this.messageBuilder!.buildCapabilityAnnouncementMessage())
+
+                if (compareVersions(this.settings!.flags.version, '3.0.1') >= 0) {
+                    await this.sendMessage(this.messageBuilder!.buildCapabilityAnnouncementMessage())
+                } else {
+                    this.logger.log("Detected Access Point firmware < 3.0.1 - Sending Legacy Capability Announcement Message.")
+                    await this.sendMessage(this.messageBuilder!.buildCapabilityAnnouncementMessageLegacy())
+                }
+
                 this.logger.log("Announced Capabilities to System Access Point")
 
                 await this.sendMessage(this.messageBuilder!.buildRequestMasterDataMessage())
@@ -403,8 +415,8 @@ export class SystemAccessPoint {
         await this.crypto!.ready()
         this.crypto!.generateKeypair()
 
-        if (compareVersions(this.settings!.flags.version, '3.0.1') < 0) {
-            throw Error('Your System Access Point\'s firmware must be at least 3.0.1');
+        if (compareVersions(this.settings!.flags.version, '2.3.1') < 0) {
+            throw Error('Your System Access Point\'s firmware must be at least 2.3.1');
         }
 
         try {
