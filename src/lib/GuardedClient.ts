@@ -30,7 +30,7 @@ export class GuardedClient{
         const guardedFn = async (a: any) => {
             try {
                 await fn(a)
-            } catch (err) {
+            } catch (err: any) {
                 this.logger.error(`Unexpected error while processing ${event} event`, err)
                 this.broadCastError(err);
             }

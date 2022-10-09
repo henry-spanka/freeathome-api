@@ -254,7 +254,7 @@ export class SystemAccessPoint {
 
         try {
             bytes = pako.inflate(messageReader.getRemainingData())
-        } catch (e) {
+        } catch (e: any) {
             throw new Error("Failed to uncompress received data, error: " + e.toString())
         }
 
@@ -384,7 +384,7 @@ export class SystemAccessPoint {
 
         try {
             message = JSON.parse(data)
-        } catch (e) {
+        } catch (e: any) {
             throw new Error("Failed to parse rpc call result JSON: " + e.toString())
         }
 
@@ -422,7 +422,7 @@ export class SystemAccessPoint {
         try {
             await this.client!.start()
             this.sendKeepAliveMessages()
-        } catch (e) {
+        } catch (e: any) {
             this.logger.error('Could not connect to System Access Point', e.toString())
             throw Error("Could not connect to System Access Point")
         }

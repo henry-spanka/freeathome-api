@@ -387,7 +387,9 @@ export class Crypto {
 
             //this.__Yv = true
 
-            cX = cX!.slice(sodium.crypto_secretbox_KEYBYTES + 8)
+            if (cX !== null) {
+                cX = (cX as Uint8Array).slice(sodium.crypto_secretbox_KEYBYTES + 8)
+            }
         }
 
         return cW

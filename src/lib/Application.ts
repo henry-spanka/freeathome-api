@@ -26,7 +26,7 @@ export class Application implements Subscriber{
 
         try {
             await this.systemAccessPoint.connect()
-        } catch (e) {
+        } catch (e: any) {
             this.logger.debug("Could not connect to free@home API", e)
             throw Error(`Could not connect to free@home API: ${e.message} `)
         }
