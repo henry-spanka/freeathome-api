@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.1.2 (2022-10-09)
+* **Enhancement:** Add support for System Access Point firmwares >= 3.0.1
+* **Enhancement:** Update dependencies
+
 ### 1.1.1 (2020-08-11)
 * **Enhancement:** Report error responses
 * **Enhancement:** Broadcast subscriber status
