@@ -1,4 +1,4 @@
-FROM node:12-alpine AS app-builder
+FROM node:18-alpine AS app-builder
 
 RUN mkdir -p /usr/src/app && chown -R node:node /usr/src/app
 
@@ -11,7 +11,7 @@ COPY --chown=node:node . .
 RUN npm run clean
 RUN npm ci
 
-FROM node:12-alpine AS app-prod
+FROM node:18-alpine AS app-prod
 
 RUN mkdir -p /usr/src/app && chown -R node:node /usr/src/app
 
