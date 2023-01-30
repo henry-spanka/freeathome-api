@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.1.3 (2023-01-30)
+
+* **Bug Fix:** Fixes a possible crash when a device is assigned to a floor but placed outside any room (#45).
+* **Enhancement:** Update documentation with some technical details regarding *functionIds*. (#47)
+
 ### 1.1.2 (2022-10-09)
 * **Enhancement:** Add support for System Access Point firmwares >= 3.0.1
 * **Enhancement:** Update dependencies
