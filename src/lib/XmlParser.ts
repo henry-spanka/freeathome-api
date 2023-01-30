@@ -43,10 +43,6 @@ export class XmlParser {
                 let roomData: any = {}
 
                 for (let room of floor.getChildren('room')) {
-                    if (room.getAttr('uid') == 'FC') {
-                        continue
-                    }
-
                     roomData[room.getAttr('uid')] = {
                         name: room.getAttr('name')
                     }
