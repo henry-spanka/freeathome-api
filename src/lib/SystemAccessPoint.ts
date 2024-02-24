@@ -12,6 +12,8 @@ import {ConsoleLogger, Logger} from "./Logger";
 import {GuardedClient} from "./GuardedClient";
 import {Subscriber} from "./Subscriber";
 import {Element} from "ltx"
+import { LocalApiClientWrapper } from "./LocalApiClientWrapper"
+import { WebSocketMessage} from "freeathome-local-api-client"
 
 export class SystemAccessPoint {
     private configuration: ClientConfiguration
@@ -27,6 +29,7 @@ export class SystemAccessPoint {
     private keepAliveTimer: NodeJS.Timeout | null = null
     private deviceData: any = {}
     private subscribed: boolean = false
+    private localApiClientWrapper: LocalApiClientWrapper | null = null
 
     private logger : Logger = new ConsoleLogger()
 
@@ -67,11 +70,17 @@ export class SystemAccessPoint {
             password: this.configuration.password
         }, this.logger)
 
-
-
         this.crypto = new Crypto(user!, this.configuration.password)
 
         this.messageBuilder = new MessageBuilder(username, this.crypto)
+
+        if (await LocalApiClientWrapper.isEnabled(this.configuration, this.user.jid.substring(0, this.user.jid.lastIndexOf('@')))) {
+            this.logger.log("Local API available. Using for websocket messages.")
+            this.localApiClientWrapper = new LocalApiClientWrapper(this.configuration, this.user.jid.substring(0, this.user.jid.lastIndexOf('@')), this.logger)
+            this.localApiClientWrapper.run((data) => this.applyLocalApiUpdate(data))
+        } else {
+            this.logger.log("Local API not available. Using only XMPP client.")
+        }
 
         this.registerHandlers()
     }
@@ -431,6 +440,8 @@ export class SystemAccessPoint {
     async disconnect() {
         this.logger.log("Disconnecting from the System Access Point");
         await this.client!.stop()
+
+        this.localApiClientWrapper?.stop()
     }
 
     private async sendKeepAliveMessage() {
@@ -486,6 +497,23 @@ export class SystemAccessPoint {
         }
 
         this.subscriber.broadcastMessage({result: update, type: 'update'})
+    }
+
+    applyLocalApiUpdate(message: WebSocketMessage) {
+        let update: any = {}
+
+        if ('00000000-0000-0000-0000-000000000000' in message) {
+            for (const [key, value] of Object.entries(message["00000000-0000-0000-0000-000000000000"].datapoints)) {
+                const [serialNo, channel, datapoint] = key.split('/')
+
+                update[serialNo] = update[serialNo] || {'channels': {}}
+                update[serialNo]['channels'][channel] = update[serialNo]['channels'][channel] || {'datapoints': {}}
+
+                update[serialNo]['channels'][channel]['datapoints'][datapoint] = value
+            }
+        }
+
+        this.applyIncrementalUpdate(update)
     }
 
     async setDatapoint(serialNo: string, channel: string, datapoint: string, value: string) {
