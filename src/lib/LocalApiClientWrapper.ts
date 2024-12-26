@@ -32,6 +32,18 @@ export class LocalApiClientWrapper {
         .subscribe(callback);
         
         this.sysAp.connectWebSocket(false);
+
+        this.sysAp.on('websocket-close', () => {
+            this.logger.warn("Websocket connection closed.")
+            setTimeout(() => {
+                this.sysAp?.connectWebSocket(false)
+            })
+        })
+
+        this.sysAp.on('websocket-error', () => {
+            this.logger.error("Websocket error.")
+            this.stop()
+        })
     }
 
     stop() {
