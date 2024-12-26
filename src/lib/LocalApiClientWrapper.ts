@@ -37,7 +37,7 @@ export class LocalApiClientWrapper {
             this.logger.warn("Websocket connection closed.")
             setTimeout(() => {
                 this.sysAp?.connectWebSocket(false)
-            })
+            }, 10000)
         })
 
         this.sysAp.on('websocket-error', () => {
