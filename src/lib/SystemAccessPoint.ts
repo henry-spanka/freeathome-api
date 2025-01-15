@@ -86,7 +86,9 @@ export class SystemAccessPoint {
     }
 
     private async getSettings(): Promise<SystemAccessPointSettings> {
-        let response = await Axios.get('http://' + this.configuration.hostname + '/settings.json')
+        let response = await Axios.get('http://' + this.configuration.hostname + '/settings.json', {
+            signal: AbortSignal.timeout(5000)
+        })
 
         if (response.status != 200) {
             this.logger.error("Unexpected status code from System Access Point while retrieving settings.json.")

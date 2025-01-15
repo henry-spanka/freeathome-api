@@ -54,6 +54,7 @@ export class LocalApiClientWrapper {
     static async isEnabled(configuration: ClientConfiguration, user: string): Promise<boolean> {
         try {
             let response = await Axios.get('http://' + configuration.hostname + '/fhapi/v1/api/rest/configuration', {
+                signal: AbortSignal.timeout(5000),
                 headers: {
                     'Authorization': 'Basic ' + btoa(user + ':' + configuration.password)
                 }

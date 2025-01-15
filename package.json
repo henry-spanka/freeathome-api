@@ -46,7 +46,7 @@
   "dependencies": {
     "@xmpp/client": "^0.13.1",
     "asmcrypto.js": "^2.3.2",
-    "axios": "^0.21.4",
+    "axios": "^0.24.0",
     "compare-versions": "^3.6.0",
     "express": "^4.17.3",
     "freeathome-local-api-client": "^1.4.4",
